@@ -350,7 +350,6 @@ function createShield(userOptions = {}) {
         blockScore: cfg.blockScore,
         blockDurationMs: cfg.blockDurationMs,
         grantDurationMs: cfg.grantDurationMs,
-        store: store.stats ? undefined : undefined,
       },
     };
   };
@@ -436,9 +435,16 @@ function createShield(userOptions = {}) {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
 
+    /* 1. Send current metrics snapshot immediately. */
     send('metrics', await snapshot());
 
-    // Throttle the per-request firehose so a load test can't kill the browser.
+    /* 2. Replay recent event history (oldest -> newest) so the log isn't empty. */
+    try {
+      const recent = metrics.recent(40).reverse();
+      for (const evt of recent) send('log', evt);
+    } catch { /* never crash the SSE stream */ }
+
+    /* 3. Live event listener with per-second budget for high-volume requests. */
     let requestBudget = 25;
     const budgetTimer = setInterval(() => { requestBudget = 25; }, 1000);
 
@@ -452,14 +458,17 @@ function createShield(userOptions = {}) {
 
     bus.on('event', onEvent);
 
+    /* 4. Periodic metrics refresh every 2 seconds. */
     const metricsTimer = setInterval(async () => {
       try { send('metrics', await snapshot()); } catch { /* ignore */ }
     }, 2000);
 
+    /* 5. Keep-alive ping every 15 seconds to prevent proxy timeouts. */
     const pingTimer = setInterval(() => {
       if (!res.writableEnded) res.write(': ping\n\n');
     }, 15_000);
 
+    /* 6. Cleanup on disconnect. */
     req.on('close', () => {
       clearInterval(budgetTimer);
       clearInterval(metricsTimer);
