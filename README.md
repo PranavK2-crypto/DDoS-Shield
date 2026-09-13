@@ -14,5 +14,4 @@ A lightweight, pluggable Express.js middleware that monitors incoming website tr
 
 DDoS Shield is a defensive security middleware that any Express.js application can plug in with a single line of code:
 
-
 app.use(shield);
