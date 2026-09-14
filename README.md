@@ -6,7 +6,7 @@ A lightweight, pluggable Express.js middleware that monitors incoming website tr
 
 🌐 **Live Demo:** [https://ddos-shield-i2id.onrender.com](https://ddos-shield-i2id.onrender.com)
 
-📊 **Admin Dashboard:** [https://ddos-shield-i2id.onrender.com/__shield/](https://ddos-shield-i2id.onrender.com/__shield/)
+📊 **Admin Dashboard:** [https://ddos-shield-i2id.onrender.com/](https://ddos-shield-i2id.onrender.com/)
 
 ---
 
